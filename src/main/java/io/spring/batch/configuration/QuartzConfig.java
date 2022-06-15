@@ -27,63 +27,63 @@ import static org.quartz.CronScheduleBuilder.cronSchedule;
 @Configuration
 public class QuartzConfig {
 
-  @Autowired
-  private JobLauncher jobLauncher;
+    @Autowired
+    private JobLauncher jobLauncher;
 
-  @Autowired
-  private JobLocator jobLocator;
+    @Autowired
+    private JobLocator jobLocator;
 
-  @Value("${cronExpression}")
-  private String cronExpression;
+    @Value("${cronExpression}")
+    private String cronExpression;
 
-  @Bean
-  public JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor(JobRegistry jobRegistry) {
-    JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor = new JobRegistryBeanPostProcessor();
-    jobRegistryBeanPostProcessor.setJobRegistry(jobRegistry);
+    @Bean
+    public JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor(JobRegistry jobRegistry) {
+        JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor = new JobRegistryBeanPostProcessor();
+        jobRegistryBeanPostProcessor.setJobRegistry(jobRegistry);
 
-    return jobRegistryBeanPostProcessor;
-  }
+        return jobRegistryBeanPostProcessor;
+    }
 
-  @Bean
-  public JobDetail jobDetail() {
-    //Set Job data map
-    JobDataMap jobDataMap = new JobDataMap();
-    jobDataMap.put("jobName", "job");
+    @Bean
+    public JobDetail jobDetail() {
+        //Set Job data map
+        JobDataMap jobDataMap = new JobDataMap();
+        jobDataMap.put("jobName", "job");
 
-    return JobBuilder.newJob(QuartzJobLauncher.class)
-      .withIdentity("job",null)
-      .setJobData(jobDataMap)
-      .storeDurably()
-      .build();
-  }
+        return JobBuilder.newJob(QuartzJobLauncher.class)
+                .withIdentity("job", null)
+                .setJobData(jobDataMap)
+                .storeDurably()
+                .build();
+    }
 
-  @Bean
-  public Trigger jobTrigger()
-  {
-    return TriggerBuilder
-      .newTrigger()
-      .forJob(jobDetail())
-      .withIdentity("jobTrigger",null)
-      .withSchedule(cronSchedule(cronExpression))
-      .build();
-  }
+    @Bean
+    public Trigger jobTrigger() {
+        return TriggerBuilder
+                .newTrigger()
+                .forJob(jobDetail())
+                .withIdentity("jobTrigger", null)
+                .withSchedule(cronSchedule(cronExpression))
+                .build();
+    }
 
-  @Bean
-  public SchedulerFactoryBean schedulerFactoryBean() throws IOException, SchedulerException
-  {
-    SchedulerFactoryBean scheduler = new SchedulerFactoryBean();
-    scheduler.setTriggers(jobTrigger());
-    scheduler.setQuartzProperties(quartzProperties());
-    scheduler.setJobDetails(jobDetail());
-    scheduler.setApplicationContextSchedulerContextKey("applicationContext");
-    return scheduler;
-  }
+    @Bean
+    public SchedulerFactoryBean schedulerFactoryBean() throws IOException {
+        SchedulerFactoryBean scheduler = new SchedulerFactoryBean();
+        scheduler.setQuartzProperties(quartzProperties());
 
-  public Properties quartzProperties() throws IOException
-  {
-    PropertiesFactoryBean propertiesFactoryBean = new PropertiesFactoryBean();
-    propertiesFactoryBean.setLocation(new ClassPathResource("/application.properties"));
-    propertiesFactoryBean.afterPropertiesSet();
-    return propertiesFactoryBean.getObject();
-  }
+        scheduler.setTriggers(jobTrigger());
+        scheduler.setJobDetails(jobDetail());
+
+
+        scheduler.setApplicationContextSchedulerContextKey("applicationContext");
+        return scheduler;
+    }
+
+    public Properties quartzProperties() throws IOException {
+        PropertiesFactoryBean propertiesFactoryBean = new PropertiesFactoryBean();
+        propertiesFactoryBean.setLocation(new ClassPathResource("/application.properties"));
+        propertiesFactoryBean.afterPropertiesSet();
+        return propertiesFactoryBean.getObject();
+    }
 }
